@@ -8,18 +8,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     List<Celebrity> celebrities;
@@ -63,29 +62,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    class DownloadWebPage extends AsyncTask<String,Void,String>{
+    class BuildCelebrityList extends AsyncTask<String,Void,Void>{
 
-        ProgressDialog progDailog;
+        ProgressDialog progressDialog;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
 
-            progDailog = new ProgressDialog(MainActivity.this);
-            progDailog.setMessage("Loading...");
-            progDailog.setIndeterminate(false);
-            progDailog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progDailog.setCancelable(true);
-            progDailog.show();
+            progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Loading...");
+            progressDialog.setIndeterminate(false);
+            progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            progressDialog.setCancelable(true);
+            progressDialog.show();
         }
 
         @Override
-        protected String doInBackground(String... params) {
-
-            HttpURLConnection urlConnection;
-            String webPage = "";
-
-            String celebrityWebsite = "http://www.posh24.com/celebrities";
+        protected Void doInBackground(String... urls) {
+            String pattern = "src=\"(.*?)\"\\s*alt=\"(.*?)\"";
+            Pattern p = Pattern.compile(pattern);
+            String celebrityWebsite = urls[0];
             try {
                 URL website = new URL(celebrityWebsite);
 
@@ -94,8 +91,13 @@ public class MainActivity extends AppCompatActivity {
                 while (str  != null)
                 {
                     Log.i("Web",str);
-
-                    
+                    Matcher m = p.matcher(str);
+                    if(m.find()){
+                        Log.i("Matched",m.group(1)+" name: "+m.group(2));
+                        String imageUrl = m.group(1);
+                        String name = m.group(2);
+                        celebrities.add(new Celebrity(imageUrl, name));
+                    }
 
                     str = in.readLine();
                 }
@@ -104,26 +106,22 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            return webPage;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            progDailog.dismiss();
+        protected void onPostExecute(Void v) {
+            super.onPostExecute(v);
+            progressDialog.dismiss();
         }
     }
 
     void extractCelebrities(){
         celebrities = new ArrayList<Celebrity>();
-        String webPage;
         String siteName = "http://www.posh24.com/celebrities";
+        BuildCelebrityList buildCelebrityList = new BuildCelebrityList();
 
-        DownloadWebPage downloadWebPage = new DownloadWebPage();
-
-        downloadWebPage.execute(siteName);
-
+        buildCelebrityList.execute(siteName);
     }
 
     void createCelebrityQuestion(){
