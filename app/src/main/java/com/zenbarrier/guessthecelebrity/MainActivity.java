@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,12 +33,7 @@ public class MainActivity extends AppCompatActivity {
         private URL celebImageUrl;
         private String celebName;
 
-        public Celebrity(String name, URL imageUrl){
-            celebImageUrl = imageUrl;
-            celebName = name;
-        }
-
-        public Celebrity(String name, String imageUrl){
+        Celebrity(String name, String imageUrl){
             try {
                 celebImageUrl = new URL(imageUrl);
             } catch (MalformedURLException e) {
@@ -46,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
             celebName = name;
         }
 
-        public String getCelebrityName(){
+        String getCelebrityName(){
             return celebName;
         }
 
-        public void setCelebrityBitmap(){
+        void setCelebrityBitmap(){
 
             class GetBitmap extends AsyncTask<Void, Void, Bitmap>{
                 @Override
@@ -82,7 +78,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void answerClick(View view){
-
+        String answer = view.getTag().toString();
+        String text = ((Button)view).getText().toString();
+        if(answer.equals(text)){
+            Toast.makeText(this, "Correct!", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(this, "Wrong! It's "+answer, Toast.LENGTH_SHORT).show();
+        }
+        createCelebrityQuestion();
     }
 
     class BuildCelebrityList extends AsyncTask<String,Void,Void>{
@@ -165,9 +169,7 @@ public class MainActivity extends AppCompatActivity {
             if(view instanceof Button){
                 Celebrity celeb = questionSet.get(j);
                 ((Button) view).setText(celeb.getCelebrityName());
-                if(celeb == answer){
-                    view.setTag("correct");
-                }
+                view.setTag(answer.celebName);
                 j++;
             }
         }
