@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,12 +17,14 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     List<Celebrity> celebrities;
+    ImageView celebImageView;
 
     class Celebrity{
         private URL celebImageUrl;
@@ -45,16 +48,34 @@ public class MainActivity extends AppCompatActivity {
             return celebName;
         }
 
-        public Bitmap getCelebrityBitmap(){
-            try {
-                InputStream inputStream = (InputStream)celebImageUrl.getContent();
-                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                inputStream.close();
-                return bitmap;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
+        public void setCelebrityBitmap(){
+
+            class GetBitmap extends AsyncTask<Void, Void, Bitmap>{
+                @Override
+                protected Bitmap doInBackground(Void... params) {
+
+                    try {
+                        InputStream inputStream = (InputStream)celebImageUrl.getContent();
+                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                        inputStream.close();
+                        return bitmap;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Bitmap bitmap) {
+                    super.onPostExecute(bitmap);
+
+                    celebImageView.setImageBitmap(bitmap);
+                }
             }
+
+            GetBitmap getBitmap = new GetBitmap();
+            getBitmap.execute();
         }
     }
 
@@ -94,9 +115,9 @@ public class MainActivity extends AppCompatActivity {
                     Matcher m = p.matcher(str);
                     if(m.find()){
                         Log.i("Matched",m.group(1)+" name: "+m.group(2));
-                        String imageUrl = m.group(1);
                         String name = m.group(2);
-                        celebrities.add(new Celebrity(imageUrl, name));
+                        String imageUrl = m.group(1);
+                        celebrities.add(new Celebrity(name, imageUrl));
                     }
 
                     str = in.readLine();
@@ -113,11 +134,12 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void v) {
             super.onPostExecute(v);
             progressDialog.dismiss();
+            createCelebrityQuestion();
         }
     }
 
     void extractCelebrities(){
-        celebrities = new ArrayList<Celebrity>();
+        celebrities = new ArrayList<>();
         String siteName = "http://www.posh24.com/celebrities";
         BuildCelebrityList buildCelebrityList = new BuildCelebrityList();
 
@@ -125,15 +147,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void createCelebrityQuestion(){
+        Collections.shuffle(celebrities);
+        List<Celebrity> questionSet = celebrities.subList(0,4);
 
+        questionSet.get(0).setCelebrityBitmap();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        celebImageView = (ImageView)findViewById(R.id.celebrityImageView);
 
         extractCelebrities();
-        createCelebrityQuestion();
     }
 }
