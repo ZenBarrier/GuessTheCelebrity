@@ -17,7 +17,8 @@
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
         android:gravity="center"
-        android:layout_centerHorizontal="true">
+        android:layout_centerHorizontal="true"
+        android:id="@+id/linearLayout">
 
         <ImageView
             android:layout_width="match_parent"

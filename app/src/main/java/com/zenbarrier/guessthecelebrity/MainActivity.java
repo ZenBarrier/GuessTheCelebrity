@@ -8,7 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -150,7 +152,34 @@ public class MainActivity extends AppCompatActivity {
         Collections.shuffle(celebrities);
         List<Celebrity> questionSet = celebrities.subList(0,4);
 
-        questionSet.get(0).setCelebrityBitmap();
+        Celebrity answer;
+
+        answer = questionSet.get(0);
+        answer.setCelebrityBitmap();
+
+        Collections.shuffle(questionSet);
+        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.linearLayout);
+
+        for(int i = 0, j = 0; i < linearLayout.getChildCount(); i++){
+            View view = linearLayout.getChildAt(i);
+            if(view instanceof Button){
+                Celebrity celeb = questionSet.get(j);
+                ((Button) view).setText(celeb.getCelebrityName());
+                if(celeb == answer){
+                    view.setTag("correct");
+                }
+                j++;
+            }
+        }
+
+        Button celebButton1 = (Button)findViewById(R.id.celebButton1);
+        celebButton1.setText(questionSet.get(0).getCelebrityName());
+        Button celebButton2 = (Button)findViewById(R.id.celebButton2);
+        celebButton2.setText(questionSet.get(1).getCelebrityName());
+        Button celebButton3 = (Button)findViewById(R.id.celebButton3);
+        celebButton3.setText(questionSet.get(2).getCelebrityName());
+        Button celebButton4 = (Button)findViewById(R.id.celebButton4);
+        celebButton4.setText(questionSet.get(3).getCelebrityName());
     }
 
     @Override
